@@ -11,7 +11,7 @@ from .presence import RichPresenceStatus
 
 class DiscordRPC:
 
-    def __init__(self, client_id, *, loop: asyncio.AbstractEventLoop=None, verbose=False):
+    def __init__(self, client_id: str, *, loop: asyncio.AbstractEventLoop=None, verbose=False) -> None:
 
         if loop is None:
             if sys.platform == "win32":
@@ -22,6 +22,7 @@ class DiscordRPC:
         if sys.platform == 'linux':
             self.ipc_path = (os.environ.get('XDG_RUNTIME_DIR', None) or os.environ.get('TMPDIR', None) or
                              os.environ.get('TMP', None) or os.environ.get('TEMP', None) or '/tmp') + '/discord-ipc-0'
+
         elif sys.platform == 'win32':
             self.ipc_path = r'\\?\pipe\discord-ipc-0'
 
@@ -31,36 +32,47 @@ class DiscordRPC:
         self.client_id = client_id
         self.verbose = verbose
 
-    async def read_output(self):
+    async def read_output(self) -> None:
+
         if self.verbose:
             print("reading output")
+
         data = await self.sock_reader.read(1024)
         code, length = struct.unpack('<ii', data[:8])
+
         if self.verbose:
             print(f'OP Code: {code}; Length: {length}\nResponse:\n{json.loads(data[8:].decode("utf-8"))}\n')
 
-    def send_data(self, op: int, payload: dict):
+    def send_data(self, op: int, payload: dict) -> None:
+
         payload = json.dumps(payload)
         data = self.sock_writer.write(struct.pack('<ii', op, len(payload)) + payload.encode('utf-8'))
+
         if self.verbose:
             print(data)
 
-    async def handshake(self):
+    async def handshake(self) -> None:
+
         if sys.platform == 'linux':
             self.sock_reader, self.sock_writer = await asyncio.open_unix_connection(self.ipc_path, loop=self.loop)
+
         elif sys.platform == 'win32':
             self.sock_reader = asyncio.StreamReader(loop=self.loop)
             reader_protocol = asyncio.StreamReaderProtocol(self.sock_reader, loop=self.loop)
             self.sock_writer, _ = await self.loop.create_pipe_connection(lambda: reader_protocol, self.ipc_path)
+
         self.send_data(0, {'v': 1, 'client_id': self.client_id})
         data = await self.sock_reader.read(1024)
         code, length = struct.unpack('<ii', data[:8])
+
         if self.verbose:
             print(f'OP Code: {code}; Length: {length}\nResponse:\n{json.loads(data[8:].decode("utf-8"))}\n')
 
-    async def send_rich_presence(self, activity: Union[dict, RichPresenceStatus]):
+    async def send_rich_presence(self, activity: Union[dict, RichPresenceStatus]) -> None:
+
         if isinstance(activity, RichPresenceStatus):
             activity = activity.to_dict()
+
         current_time = time.time()
         payload = {
             "cmd": "SET_ACTIVITY",
@@ -70,14 +82,18 @@ class DiscordRPC:
             },
             "nonce": f'{current_time:.20f}'
         }
+
         if self.verbose:
             print("sending data")
+
         self.send_data(1, payload)
         await self.read_output()
 
-    def close(self):
+    def close(self) -> None:
+
         self.sock_writer.close()
         self.loop.close()
 
-    async def start(self):
+    async def start(self) -> None:
+        
         await self.handshake()

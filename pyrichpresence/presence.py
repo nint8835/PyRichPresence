@@ -14,7 +14,7 @@ class RichPresenceStatus:
     small_image_key: str = None
     small_image_text: str = None
 
-    def remove_none(self, dictionary: dict):
+    def remove_none(self, dictionary: dict) -> None:
         for key, value in list(dictionary.items()):
             if value is None:
                 del dictionary[key]

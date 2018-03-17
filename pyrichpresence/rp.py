@@ -7,14 +7,22 @@ import time
 
 
 class DiscordRPC:
-    def __init__(self, client_id, loop, verbose):
+
+    def __init__(self, client_id, *, loop: asyncio.AbstractEventLoop=None, verbose=False):
+
+        if loop is None:
+            if sys.platform == "win32":
+                loop = asyncio.ProactorEventLoop()
+            else:
+                loop = asyncio.get_event_loop()
+
         if sys.platform == 'linux':
             self.ipc_path = (os.environ.get('XDG_RUNTIME_DIR', None) or os.environ.get('TMPDIR', None) or
                              os.environ.get('TMP', None) or os.environ.get('TEMP', None) or '/tmp') + '/discord-ipc-0'
-            self.loop = asyncio.get_event_loop()
         elif sys.platform == 'win32':
             self.ipc_path = r'\\?\pipe\discord-ipc-0'
-            self.loop = loop
+
+        self.loop = loop
         self.sock_reader: asyncio.StreamReader = None
         self.sock_writer: asyncio.StreamWriter = None
         self.client_id = client_id

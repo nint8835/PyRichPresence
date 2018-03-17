@@ -4,6 +4,9 @@ import os
 import struct
 import sys
 import time
+from typing import Union
+
+from .presence import RichPresenceStatus
 
 
 class DiscordRPC:
@@ -55,7 +58,9 @@ class DiscordRPC:
         if self.verbose:
             print(f'OP Code: {code}; Length: {length}\nResponse:\n{json.loads(data[8:].decode("utf-8"))}\n')
 
-    async def send_rich_presence(self, activity):
+    async def send_rich_presence(self, activity: Union[dict, RichPresenceStatus]):
+        if isinstance(activity, RichPresenceStatus):
+            activity = activity.to_dict()
         current_time = time.time()
         payload = {
             "cmd": "SET_ACTIVITY",

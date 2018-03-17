@@ -1,5 +1,7 @@
 # PyRichPresence
-Python rich presence wrapper for Discord  
+Python library providing easy access to Discord's rich presence functionality
 
 ## Credits
-AlexFlipnote for writing the base of the rich presence library. I fixed it up and created the VLC wrapper for it.  
+AlexFlipnote: Wrote the base of the rich presence library.
+
+ry00001: Fixed up the code

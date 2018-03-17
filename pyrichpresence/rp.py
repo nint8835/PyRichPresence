@@ -95,5 +95,5 @@ class DiscordRPC:
         self.loop.close()
 
     async def start(self) -> None:
-        
+
         await self.handshake()
